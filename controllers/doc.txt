@@ -1,0 +1,99 @@
+// package dummy
+
+// import (
+// 	"context"
+// 	"encoding/json"
+// 	"log"
+// 	"net/http"
+// 	"time"
+
+// 	"github.com/mihir010/ylytic/database"
+// 	"go.mongodb.org/mongo-driver/bson"
+// 	"go.mongodb.org/mongo-driver/bson/primitive"
+// )
+
+// func searchParams(author string) []primitive.M {
+// 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*10000)
+// 	defer cancel()
+
+// 	curr, err := database.Collection().Find(ctx, bson.M{"author": bson.M{"$regex": author}})
+
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	var authors []primitive.M
+
+// 	for curr.Next(ctx) {
+// 		var author primitive.M
+
+// 		err := curr.Decode(&author)
+
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
+
+// 		authors = append(authors, author)
+// 	}
+
+// 	defer curr.Close(ctx)
+
+// 	return authors
+// }
+
+// // func getAll() []primitive.M {
+// // 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*10000)
+// // 	defer cancel()
+
+// // 	curr, err := database.Collection().Find(ctx, bson.D{{}})
+
+// // 	var users []primitive.M
+
+// // 	if err != nil {
+// // 		log.Fatal(err)
+// // 	}
+
+// // 	for curr.Next(ctx) {
+// // 		var user primitive.M
+
+// // 		err := curr.Decode(&user)
+
+// // 		if err != nil {
+// // 			log.Fatal(err)
+// // 		}
+
+// // 		users = append(users, user)
+// // 	}
+
+// // 	defer curr.Close(ctx)
+
+// // 	return users
+// // }
+
+// func SearchParams(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.Header().Set("Allow-Control-Allow-Methods", "GET")
+// 	author := r.URL.Query().Get("author")
+
+// 	if author == "" {
+// 		json.NewEncoder(w).Encode("user not found")
+// 		return
+// 	}
+
+// 	findAuthor := searchParams(author)
+
+// 	json.NewEncoder(w).Encode(findAuthor)
+// 	return
+// }
+
+// // func GetAll(w http.ResponseWriter, r *http.Request) {
+// // 	w.Header().Set("Content-Type", "application/json")
+// // 	w.Header().Set("Allow-Control-Allow-Methods", "GET")
+
+// // 	allComents := getAll()
+
+// // 	json.NewEncoder(w).Encode(allComents)
+// // }
+
+// func ServeHome(w http.ResponseWriter, r *http.Request) {
+// 	json.NewEncoder(w).Encode("hello world!")
+// }

@@ -1,0 +1,93 @@
+package controllers
+
+import (
+	"context"
+	"encoding/json"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/mihir010/ylytic/database"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+func searchParams(filter bson.M) []primitive.M {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Microsecond*10000000)
+	defer cancel()
+
+	cur, err := database.Collection().Find(ctx, filter)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	var docs []primitive.M
+
+	for cur.Next(ctx) {
+		var doc primitive.M
+
+		err := cur.Decode(&doc)
+
+		if err != nil {
+			log.Panic(err)
+		}
+
+		docs = append(docs, doc)
+	}
+
+	defer cur.Close(ctx)
+
+	return docs
+}
+
+func SearchParams(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Allow-Control-Allow-Methods", "GET")
+	author := r.URL.Query().Get("author")
+	text := r.URL.Query().Get("text")
+	likesF := r.URL.Query().Get("likes_from")
+	var likesFrom int = -1e9
+
+	if len(likesF) > 0 {
+		likesFrom, _ = strconv.Atoi(likesF)
+	}
+
+	likesT := r.URL.Query().Get("likes_to")
+	var likesTo int = 1e9
+
+	if len(likesT) > 0 {
+		likesTo, _ = strconv.Atoi(r.URL.Query().Get("likes_to"))
+	}
+
+	replyF := r.URL.Query().Get("reply_from")
+	var replyFrom int = -1e9
+
+	if len(replyF) > 0 {
+		replyFrom, _ = strconv.Atoi(replyF)
+	}
+
+	replyT := r.URL.Query().Get("reply_to")
+	var replyTo int = 1e9
+
+	if len(replyT) > 0 {
+		replyTo, _ = strconv.Atoi(r.URL.Query().Get("reply_to"))
+	}
+
+	filter := bson.M{}
+
+	filter["author"] = bson.M{"$regex": author}
+	filter["text"] = bson.M{"$regex": text}
+	filter["like"] = bson.M{"$gte": likesFrom, "$lte": likesTo}
+	filter["reply"] = bson.M{"$gte": replyFrom, "$lte": replyTo}
+
+	findAuthor := searchParams(filter)
+
+	json.NewEncoder(w).Encode(findAuthor)
+	return
+}
+
+func ServeHome(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode("hello world!")
+}
